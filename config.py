@@ -1,0 +1,5 @@
+import os
+
+RDS_URL = os.getenv('RDS_URL')
+FLASK_SESSION_KEY = os.getenv('FLASK_SESSION_KEY')
+SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')

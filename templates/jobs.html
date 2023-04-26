@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jobs</title>
+</head>
+<body>
+    <h1>Jobs</h1>
+
+    <form method="POST" action="/jobs">
+        <label>Title:</label>
+        <input type="text" name="title"><br>
+
+        <label>Description:</label>
+        <textarea name="description"></textarea><br>
+
+        <input type="submit" value="Create job">
+    </form>
+
+    <h2>List of jobs:</h2>
+    <ul>
+        {% for job in jobs %}
+            <li>{{ job.title }} - {{ job.description }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

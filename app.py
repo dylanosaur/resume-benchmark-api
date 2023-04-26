@@ -1,0 +1,75 @@
+from flask import Flask, render_template, request, jsonify, url_for
+from auth import get_user_info
+from models import db, Jobs, Votes
+from config import RDS_URL, FLASK_SESSION_KEY
+from flask_cors import CORS
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = RDS_URL
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = FLASK_SESSION_KEY
+
+db.init_app(app)
+CORS(app)
+
+# parse header for auth tokens
+@app.before_request
+def before_request():
+    get_user_info()
+
+
+# Home page with links to other routes
+@app.route('/')
+def home():
+    routes = {
+        '/vote': 'POST endpoint to save votes to the database',
+        '/jobs': 'GET and POST endpoint to create and list jobs',
+        '/user': 'GET endpoint to get user information from Supabase cookie/JWT'
+    }
+    
+    # generate links to the other routes using url_for
+    route_links = {route: url_for(route[1:]) for route in routes}
+    
+    return jsonify({
+        'message': 'Welcome to the Flask app!',
+        'routes': routes,
+        'route_links': route_links
+    })
+
+# Endpoint to get user information
+@app.route('/user')
+def user():
+    return jsonify(request.user)
+
+@app.route('/vote', methods=['GET', 'POST'])
+def vote():
+    if request.method == 'GET':
+        votes = Votes.query.all()
+        return jsonify([{'id': vote.id, 'selectedImage': vote.selected_image, 'allImages': vote.all_images} for vote in votes])
+    elif request.method == 'POST':
+        data = request.get_json()
+        selected_image = data.get('selectedImage')
+        all_images = data.get('allImages')
+        vote = Votes(selected_image=selected_image, all_images=all_images)
+        db.session.add(vote)
+        db.session.commit()
+        return jsonify({'message': 'Vote saved successfully!'})
+
+
+@app.route('/jobs', methods=['GET', 'POST'])
+def jobs():
+    if request.method == 'GET':
+        jobs = Jobs.query.all()
+        return render_template('jobs.html', jobs=jobs)
+    elif request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        job = Jobs(title=title, description=description)
+        db.session.add(job)
+        db.session.commit()
+        return jsonify({'message': 'Job created successfully!'})
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
