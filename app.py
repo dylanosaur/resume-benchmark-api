@@ -1,12 +1,15 @@
-from flask import Flask, render_template, request, jsonify, url_for
+from flask import Flask, render_template, request, jsonify, session, url_for
 from auth import get_user_info
-from models import db, Jobs, Votes
+from models import StrippedDocs, db, Jobs, Votes
 from config import RDS_URL, FLASK_SESSION_KEY
 from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = RDS_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+if (FLASK_SESSION_KEY is None):
+    print('flask session key not set')
+    exit()
 app.config['SECRET_KEY'] = FLASK_SESSION_KEY
 
 db.init_app(app)
@@ -39,7 +42,8 @@ def home():
 # Endpoint to get user information
 @app.route('/user')
 def user():
-    return jsonify(request.user)
+    print(session['user'])
+    return jsonify(session['user'])
 
 @app.route('/vote', methods=['GET', 'POST'])
 def vote():
@@ -69,6 +73,14 @@ def jobs():
         db.session.commit()
         return jsonify({'message': 'Job created successfully!'})
 
+@app.route('/images')
+def images():
+    images: StrippedDocs = StrippedDocs.query.all()
+    image_list = []
+    for image in images:
+        image_url = image.filename
+        image_list.append(image_url)
+    return jsonify({'images': image_list})
 
 
 if __name__ == '__main__':

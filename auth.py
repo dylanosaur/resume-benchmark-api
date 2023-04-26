@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, session
 import jwt
 import requests
 from config import SUPABASE_JWT_SECRET
@@ -27,6 +27,9 @@ def get_user_info():
                     db.session.add(new_user)
                     db.session.commit()
 
+                matched_user = {'user_id': user_id, 'email': email}
+                session['user'] = matched_user
+                print('set session user', session['user'])
                 return jsonify({'user_id': user_id, 'email': email}), 200, headers
             except Exception as ex:
                 print(ex)
