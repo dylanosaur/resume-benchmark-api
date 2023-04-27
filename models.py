@@ -20,6 +20,10 @@ class Jobs(db.Model):
     title = Column(String)
     description = Column(String)
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
 class Users(db.Model):
     id = Column(Integer, primary_key=True)
     email = Column(String)
@@ -29,6 +33,7 @@ class Users(db.Model):
 from datetime import datetime
 import boto3
 from botocore.exceptions import ClientError
+from sqlalchemy import ForeignKey
 
 class StrippedDocs(db.Model):
     __tablename__ = 'stripped_docs'
@@ -36,7 +41,8 @@ class StrippedDocs(db.Model):
     filename = db.Column(db.String(100), nullable=False)
     url = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
+    job_id = db.Column(db.Integer(), ForeignKey('jobs.id'))
+    
     @classmethod
     def upload_and_host(cls, file_obj):
         """
