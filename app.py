@@ -3,6 +3,7 @@ from auth import get_user_info
 from models import StrippedDocs, db, Jobs, Votes
 from config import FILESERVER_PATH, RDS_URL, FLASK_SESSION_KEY
 from flask_cors import CORS
+from uploads import upload_bp
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = RDS_URL
@@ -14,6 +15,8 @@ app.config['SECRET_KEY'] = FLASK_SESSION_KEY
 
 db.init_app(app)
 CORS(app)
+
+app.register_blueprint(upload_bp)
 
 # parse header for auth tokens
 @app.before_request
@@ -27,7 +30,8 @@ def home():
     routes = {
         '/vote': 'POST endpoint to save votes to the database',
         '/jobs': 'GET and POST endpoint to create and list jobs',
-        '/user': 'GET endpoint to get user information from Supabase cookie/JWT'
+        '/user': 'GET decode supbase JWT from Auth header',
+        '/upload': 'POST endpoint for resume sample upload'
     }
     
     # generate links to the other routes using url_for
@@ -86,45 +90,6 @@ def images():
         image_url = image.filename
         image_list.append(image_url)
     return jsonify({'images': image_list})
-
-from werkzeug.utils import secure_filename
-import os
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    # Get the uploaded file and job role tag from the request
-    file = request.files['file']
-    job_role = request.form.get('job')
-
-    # Check if job role already exists in the database. If not, add it.
-    job = Jobs.query.filter_by(title=job_role).first()
-    if not job:
-        job = Jobs(title=job_role, description='')
-        db.session.add(job)
-        db.session.commit()
-
-    # Check if filename already exists in the database. If so, return an error.
-    stripped_doc = StrippedDocs.query.filter_by(filename=file.filename).first()
-    if stripped_doc:
-        return {'message': 'File already exists in the database'}, 400
-
-    # Create a new StrippedDocs object and set its attributes
-    stripped_doc = StrippedDocs(filename=file.filename, url='fakeurl.com', job_id=job.id)
-
-    # Save the file to disk and set its path in the StrippedDocs object
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(FILESERVER_PATH,  filename)
-    file.save(filepath)
-    stripped_doc.file_path = filepath
-
-    # Add the StrippedDocs object to the database
-    try:
-        db.session.add(stripped_doc)
-        db.session.commit()
-        return {'message': 'Upload successful'}
-    except Exception as e:
-        db.session.rollback()
-        return {'message': 'Upload failed', 'error': str(e)}, 500
 
 
 

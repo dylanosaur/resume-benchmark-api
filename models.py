@@ -42,21 +42,24 @@ class StrippedDocs(db.Model):
     url = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     job_id = db.Column(db.Integer(), ForeignKey('jobs.id'))
+    user_id = db.Column(db.Integer(), ForeignKey('users.id'))
     
     @classmethod
-    def upload_and_host(cls, file_obj):
+    def upload_and_host(cls, file_obj, filename):
         """
         Uploads a file to an S3 bucket and returns a StrippedDocs object with the hosted url.
         """
         # Upload file to S3 bucket
+        session = boto3.Session(region_name='us-west-1')
+
         s3 = boto3.client('s3')
-        bucket_name = 'my-bucket'
-        file_key = f'{uuid.uuid4()}-{file_obj.filename}'
+        bucket_name = 'resume-helper-5f2d3'
+        file_key = f'resume-samples/{uuid.uuid4()}-{filename}'
         s3.upload_fileobj(file_obj, bucket_name, file_key)
 
         # Create a new StrippedDocs object with the hosted url
         url = f'https://{bucket_name}.s3.amazonaws.com/{file_key}'
-        stripped_doc = cls(filename=file_obj.filename, url=url)
+        stripped_doc = cls(filename=filename, url=url)
         db.session.add(stripped_doc)
         db.session.commit()
 
