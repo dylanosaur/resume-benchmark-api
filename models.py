@@ -9,14 +9,10 @@ from sqlalchemy import ForeignKey
 
 db = SQLAlchemy()
 
-
-
-# Vote endpoint to save votes to the database
-class Votes(db.Model):
+class Users(db.Model):
     id = Column(Integer, primary_key=True)
-    selected_image = Column(String)
-    all_images = Column(String)
-    user_id = Column(Integer(), ForeignKey('users.id'))
+    email = Column(String)
+    supabase_id = Column(String)
 
 
 # Endpoint to create and list jobs
@@ -27,14 +23,6 @@ class Jobs(db.Model):
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-
-class Users(db.Model):
-    id = Column(Integer, primary_key=True)
-    email = Column(String)
-    supabase_id = Column(String)
-
-
 
 
 class StrippedDocs(db.Model):
@@ -67,3 +55,25 @@ class StrippedDocs(db.Model):
         db.session.commit()
 
         return stripped_doc
+
+
+# Vote endpoint to save votes to the database
+class Votes(db.Model):
+    id = Column(Integer, primary_key=True)
+    selected_image = Column(String)
+    all_images = Column(String)
+    user_id = Column(Integer(), ForeignKey('users.id'))
+    job_id = Column(Integer(), ForeignKey('jobs.id'))
+
+
+
+# Vote endpoint to save votes to the database
+class Rankings(db.Model):
+    id = Column(Integer, primary_key=True)
+    job_id = Column(Integer(), ForeignKey('jobs.id'))
+    stripped_doc_id = Column(Integer(), ForeignKey('stripped_docs.id'))
+    score = Column(Integer())
+
+
+
+
