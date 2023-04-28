@@ -4,6 +4,7 @@ from models import StrippedDocs, db, Jobs, Votes
 from config import FILESERVER_PATH, RDS_URL, FLASK_SESSION_KEY
 from flask_cors import CORS
 from uploads import upload_bp
+from votes import votes_bp
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = RDS_URL
@@ -17,6 +18,7 @@ db.init_app(app)
 CORS(app)
 
 app.register_blueprint(upload_bp)
+app.register_blueprint(votes_bp)
 
 # parse header for auth tokens
 @app.before_request
@@ -48,20 +50,6 @@ def home():
 def user():
     print(session['user'])
     return jsonify(session['user'])
-
-@app.route('/vote', methods=['GET', 'POST'])
-def vote():
-    if request.method == 'GET':
-        votes = Votes.query.all()
-        return jsonify([{'id': vote.id, 'selectedImage': vote.selected_image, 'allImages': vote.all_images} for vote in votes])
-    elif request.method == 'POST':
-        data = request.get_json()
-        selected_image = data.get('selectedImage')
-        all_images = data.get('allImages')
-        vote = Votes(selected_image=selected_image, all_images=all_images)
-        db.session.add(vote)
-        db.session.commit()
-        return jsonify({'message': 'Vote saved successfully!'})
 
 @app.route('/all_jobs', methods=['GET', 'POST'])
 def json_jobs():

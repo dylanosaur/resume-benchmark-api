@@ -2,6 +2,10 @@ import uuid
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String
 
+from datetime import datetime
+import boto3
+from botocore.exceptions import ClientError
+from sqlalchemy import ForeignKey
 
 db = SQLAlchemy()
 
@@ -12,6 +16,7 @@ class Votes(db.Model):
     id = Column(Integer, primary_key=True)
     selected_image = Column(String)
     all_images = Column(String)
+    user_id = Column(Integer(), ForeignKey('users.id'))
 
 
 # Endpoint to create and list jobs
@@ -30,10 +35,7 @@ class Users(db.Model):
     supabase_id = Column(String)
 
 
-from datetime import datetime
-import boto3
-from botocore.exceptions import ClientError
-from sqlalchemy import ForeignKey
+
 
 class StrippedDocs(db.Model):
     __tablename__ = 'stripped_docs'
@@ -43,6 +45,7 @@ class StrippedDocs(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     job_id = db.Column(db.Integer(), ForeignKey('jobs.id'))
     user_id = db.Column(db.Integer(), ForeignKey('users.id'))
+    ranking = db.Column(db.Integer())
     
     @classmethod
     def upload_and_host(cls, file_obj, filename):

@@ -21,8 +21,9 @@ def get_user_info():
                     new_user = Users(email=email, supabase_id=user_id)
                     db.session.add(new_user)
                     db.session.commit()
+                    matching_user = new_user
 
-                matched_user = {'user_id': user_id, 'email': email}
+                matched_user = {'user_id': matching_user.id, 'email': matching_user.email}
                 session['user'] = matched_user
                 return jsonify({'user_id': user_id, 'email': email}), 200, headers
             except Exception as ex:
