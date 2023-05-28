@@ -30,14 +30,26 @@ def before_request():
 @app.route('/')
 def home():
     routes = {
-        '/vote': 'POST endpoint to save votes to the database',
-        '/jobs': 'GET and POST endpoint to create and list jobs',
-        '/user': 'GET decode supbase JWT from Auth header',
-        '/upload': 'POST endpoint for resume sample upload'
+        '/vote': {
+            'link': 'votes.vote',
+            'note': 'POST endpoint to save votes to the database'
+        },
+        '/jobs': {
+            'link': 'jobs',
+            'note': 'GET and POST endpoint to create and list jobs',
+        },
+        '/user': {
+            'link': 'user',
+            'note': 'GET decode supbase JWT from Auth header',
+        },
+        '/upload': {
+            'link': 'upload.upload',
+            'note': 'POST endpoint for resume sample upload'
+        }
     }
     
     # generate links to the other routes using url_for
-    route_links = {route: url_for(route[1:]) for route in routes}
+    route_links = {route: url_for(routes[route]['link']) for route in routes}
     
     return jsonify({
         'message': 'Welcome to the Flask app!',
