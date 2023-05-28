@@ -91,6 +91,44 @@ def images():
         image_list.append(image_url)
     return jsonify({'images': image_list})
 
+import random
+
+@app.route('/get_comparison')
+def generate_comparison():
+    
+    # include job filter if present query args as "allowed_jobs" field - matches on job.title
+    # if present pick a role randomly from allowed_jobs
+    # query stripped docs and pull 2 random docs with the role
+    # return structured data like [{doc.id, doc.url, job.id, job.title}, {}]
+    allowed_jobs = request.args.getlist('allowed_jobs')
+    if allowed_jobs:
+        matched_docs = db.session.query(StrippedDocs, Jobs)\
+            .filter(StrippedDocs.job_id==Jobs.id)\
+            .filter(Jobs.title.in_(allowed_jobs))\
+            .all()
+    else:
+        matched_docs = db.session.query(StrippedDocs, Jobs).all()
+
+    docs = [x[0] for x in matched_docs]
+    jobs_by_id = {x[1].id:x[1] for x in matched_docs}
+
+    first_random_doc = random.choice(docs)
+    second_random_doc = random.choice([x for x in docs 
+                    if x.job_id==first_random_doc.job_id 
+                    and x.id != first_random_doc.id])
+
+    selected_docs = [first_random_doc, second_random_doc]
+    result = []
+    for doc in selected_docs:
+        result.append({
+            'doc_id': doc.id,
+            'doc_url': doc.url,
+            'doc_filename': doc.filename,
+            'job_id': doc.job_id,
+            'job_title': jobs_by_id[doc.job_id].title,
+        })
+    return jsonify(result)
+
 
 
 if __name__ == '__main__':
