@@ -30,17 +30,21 @@ def vote():
             user_id = session['user']['user_id']
             print('set user id to', user_id)
 
-        filenames = [x["doc_filename"] for x in all_images]
-        matching_docs = db.session.query(StrippedDocs, Jobs)\
+        urls = [x for x in all_images]
+        results = db.session.query(StrippedDocs, Jobs)\
             .filter(StrippedDocs.job_id==Jobs.id)\
-            .filter(StrippedDocs.filename.in_([x["doc_filename"] for x in all_images]))\
+            .filter(StrippedDocs.url.in_(urls))\
             .all()
 
-        docs_by_filename = {x[0].filename: x[0] for x in matching_docs}
-        selected_doc = docs_by_filename[selected_image]
-        loser_docs = [docs_by_filename[x["doc_filename"]] for x in all_images if x["doc_filename"] != selected_image]
+        matching_docs = [x[0] for x in results]
+        job = [x[0] for x in results][0]
+        print(matching_docs)
 
-        vote = Votes(selected_image=selected_doc.id, all_images=filenames, 
+        docs_by_url = {x.url: x for x in matching_docs}
+        selected_doc = docs_by_url[selected_image]
+        loser_docs = [x for x in matching_docs if x.url != selected_image]
+
+        vote = Votes(selected_image=selected_doc.id, all_images=urls, 
                      user_id=user_id, job_id=selected_doc.job_id)
         db.session.add(vote)
         db.session.commit()
@@ -77,9 +81,11 @@ def vote():
     
 @votes_bp.route('/leaderboard')
 def leaderboard():
-    stripped_docs = StrippedDocs.query.order_by(StrippedDocs.ranking.desc()).all()
-    result = [{'filename': doc.filename,
-               'url': doc.url,
-                'ranking': doc.ranking if doc.ranking else 0} for doc in stripped_docs]
-    result.sort(key=lambda x:x['ranking'], reverse=True)
+    ranked_results = db.session.query(StrippedDocs, Rankings)\
+        .filter(Rankings.stripped_doc_id==StrippedDocs.id)\
+        .order_by(Rankings.score.desc()).all()
+    print(ranked_results)
+    result = [{'filename': x[0].filename,
+               'url': x[0].url,
+               'ranking': x[1].score if x[1].score else 0} for x in ranked_results]
     return jsonify(result)
