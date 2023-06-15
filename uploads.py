@@ -8,8 +8,10 @@ import os
 
 upload_bp = Blueprint('upload', __name__)
 
-@upload_bp.route('/upload', methods=['POST'])
+@upload_bp.route('/upload', methods=['GET', 'POST'])
 def upload():
+    if request.method == 'GET':
+        return render_template('upload.html')
     # Get the uploaded file and job role tag from the request
     file = request.files['file']
     job_role = request.form.get('job')

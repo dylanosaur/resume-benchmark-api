@@ -87,7 +87,7 @@ def images():
     images: StrippedDocs = StrippedDocs.query.all()
     image_list = []
     for image in images:
-        image_url = image.filename
+        image_url = image.url
         image_list.append(image_url)
     return jsonify({'images': image_list})
 
