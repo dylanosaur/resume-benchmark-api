@@ -4,7 +4,7 @@ sqlalchemy
 gunicorn
 cryptography==38.0.4
 pyjwt[crypto]
-urllib3==1.25.11
+urllib3==1.26.18
 requests
 boto3
 flask_cors
