@@ -9,3 +9,4 @@ requests
 boto3
 flask_cors
 psycopg2-binary
+werkzeug>=3.0.1 # not directly required, pinned by Snyk to avoid a vulnerability
