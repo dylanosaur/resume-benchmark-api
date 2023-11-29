@@ -2,7 +2,7 @@ flask
 flask_sqlalchemy
 sqlalchemy
 gunicorn
-cryptography==38.0.4
+cryptography==41.0.6
 pyjwt[crypto]
 urllib3==1.25.11
 requests
