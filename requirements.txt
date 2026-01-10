@@ -4,8 +4,9 @@ sqlalchemy
 gunicorn
 cryptography==38.0.4
 pyjwt[crypto]
-urllib3==1.25.11
+urllib3==2.6.3
 requests
 boto3
 flask_cors
 psycopg2-binary
+werkzeug>=3.1.5 # not directly required, pinned by Snyk to avoid a vulnerability
